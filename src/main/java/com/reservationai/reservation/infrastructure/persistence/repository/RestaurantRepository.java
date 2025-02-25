@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface RestaurantRepository extends JpaRepository<RestaurantEntity, Long> {
-    List<RestaurantEntity> findByType(String typeRestaurant);
+    List<RestaurantEntity> findByCategoryAndCity(String categoryRestaurant, String cityRestaurant);
 }

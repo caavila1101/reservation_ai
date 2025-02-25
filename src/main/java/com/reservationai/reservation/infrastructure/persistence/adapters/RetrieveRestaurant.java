@@ -18,8 +18,8 @@ public class RetrieveRestaurant implements RetrieveRestaurantDomain {
     }
 
     @Override
-    public List<Restaurant> findByType(String typeRestaurant) {
-        var result = restaurantRepository.findByType(typeRestaurant);
+    public List<Restaurant> findByType(String categoryRestaurant, String cityRestaurant) {
+        var result = restaurantRepository.findByCategoryAndCity(categoryRestaurant, cityRestaurant);
         return result.stream()
                 .map(RestaurantEntity::toEntity)
                 .toList();

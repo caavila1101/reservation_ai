@@ -20,46 +20,47 @@ public class GetRestaurants {
         this.retrieveRestaurantDomain = retrieveRestaurantDomain;
     }
 
-    private String extractRestaurantType(String extractedInfo) {
-        List<String> knownTypes = List.of("comida rápida", "italiana");
-
-        for (String type : knownTypes) {
-            if (extractedInfo.toLowerCase().contains(type)) {
-                return type;
-            }
-        }
-        return null;
-    }
-
     public String execute(String promptUser) {
-        String prompt = "Extrae la intención en pocas palabras y el tipo de restaurante de esta consulta: " + promptUser;
+        String prompt = "Extrae el tipo de restaurante y la ciudad de la consulta del usuario.  \n" +
+                "Corrige errores ortográficos y devuelve ambos en minúsculas y sin tildes.  \n" +
+                "Si el usuario escribe una categoría poco clara, intenta interpretarla según el contexto.  \n" +
+                "Devuélvelos en el formato: categoria, ciudad, sin añadir punto al final.  \n" +
+                "Si falta alguno, usa 0"
+                + promptUser;
         String extractedInfo = chatModel.call(prompt);
 
-        String restaurantType = extractRestaurantType(extractedInfo);
+        String[] parts = extractedInfo.split(",", 2);
+        String categoryRestaurant = parts[0].trim();
+        String cityRestaurant = parts.length > 1 ? parts[1].trim() : "";
 
-        if (restaurantType != null) {
-            List<String> restaurants = getRestaurantsByType(restaurantType);
+        if(categoryRestaurant.length() > 1){
+            if (cityRestaurant.length() > 1){
+                List<String> restaurants = getRestaurantsByType(categoryRestaurant, cityRestaurant);
 
-            if (restaurants.isEmpty()) {
-                return "No encontré restaurantes de " + restaurantType + " en Tunja.";
+                if (restaurants.isEmpty()) {
+                    return "No encontré restaurantes de categoria " + categoryRestaurant + " en " + cityRestaurant;
+                }
+
+                String restaurantList = String.join(", ", restaurants);
+                String responsePrompt = "Responde de forma amigable y breve, usando únicamente la información dada. No agregues datos extra ni describas cada restaurante. Lista de restaurantes de "
+                        + categoryRestaurant + " en " + cityRestaurant + ": " + restaurantList;
+                return chatModel.call(new Prompt(
+                        responsePrompt,
+                        OpenAiChatOptions.builder()
+                                .model("gpt-4o")
+                                .temperature(0.2)
+                                .build()
+                )).getResult().getOutput().getText();
+            }else{
+                return "Por favor, dime en que ciudad quieres ver esta categoria de restaurante: " + categoryRestaurant;
             }
-
-            String restaurantList = String.join(", ", restaurants);
-            String responsePrompt = "Responde de manera amigable, corta y no coloques definición a cada restaurante con esta lista de restaurantes de " + restaurantType + " en Tunja: " + restaurantList;
-            return chatModel.call(new Prompt(
-                    responsePrompt,
-                    OpenAiChatOptions.builder()
-                            .model("gpt-4o")
-                            .temperature(0.2)
-                            .build()
-            )).getResult().getOutput().getText();
         }
 
-        return "No entendí tu solicitud. ¿Puedes reformularla?";
+        return "Por favor, dime qué tipo de restaurante buscas y en qué ciudad lo quieres ver \uD83D\uDE4F";
     }
 
-    private List<String> getRestaurantsByType(String restaurantType) {
-        return retrieveRestaurantDomain.findByType(restaurantType)
+    private List<String> getRestaurantsByType(String categoryRestaurant, String cityRestaurant) {
+        return retrieveRestaurantDomain.findByType(categoryRestaurant, cityRestaurant)
                 .stream()
                 .map(Restaurant::getName)
                 .toList();

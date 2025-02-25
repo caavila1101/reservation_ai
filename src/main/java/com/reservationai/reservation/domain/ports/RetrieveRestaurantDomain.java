@@ -5,5 +5,5 @@ import com.reservationai.reservation.domain.Restaurant;
 import java.util.List;
 
 public interface RetrieveRestaurantDomain {
-    List<Restaurant> findByType(String typeRestaurant);
+    List<Restaurant> findByType(String categoryRestaurant, String cityRestaurant);
 }

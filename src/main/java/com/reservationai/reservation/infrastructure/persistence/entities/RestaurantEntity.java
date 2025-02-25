@@ -2,9 +2,13 @@ package com.reservationai.reservation.infrastructure.persistence.entities;
 
 import com.reservationai.reservation.domain.Restaurant;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "restaurants")
+@Getter
+@Setter
 public class RestaurantEntity {
 
     @Id
@@ -12,36 +16,23 @@ public class RestaurantEntity {
     private Long id;
 
     private String name;
-    private String type;
-    private String address;
+    private String category;
+    private String city;
 
     public RestaurantEntity() {}
 
-    public RestaurantEntity(String name, String type, String address) {
+    public RestaurantEntity(String name, String category, String city) {
         this.name = name;
-        this.type = type;
-        this.address = address;
+        this.category = category;
+        this.city = city;
     }
 
     public Restaurant toEntity(){
         return Restaurant.builder()
                 .id(this.id)
                 .name(this.name)
-                .type(this.type)
-                .address(this.address)
+                .category(this.category)
+                .city(this.city)
                 .build();
     }
-
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
-
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
 }

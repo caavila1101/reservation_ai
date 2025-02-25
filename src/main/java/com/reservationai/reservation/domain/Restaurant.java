@@ -5,40 +5,19 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Builder
+@Getter
+@Setter
 public class Restaurant {
     private Long id;
     private String name;
-    private String type;
-    private String address;
+    private String category;
+    private String city;
 
-    public Restaurant(Long id, String name, String type, String address) {
+    public Restaurant(Long id, String name, String category, String city) {
         this.id = id;
         this.name = name;
-        this.type = type;
-        this.address = address;
+        this.category = category;
+        this.city = city;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
 }
