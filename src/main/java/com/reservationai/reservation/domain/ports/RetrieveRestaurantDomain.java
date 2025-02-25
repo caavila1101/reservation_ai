@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface RetrieveRestaurantDomain {
     List<Restaurant> findByType(String categoryRestaurant, String cityRestaurant);
+    List<Restaurant> findAllCategoriesByCity(String city);
 }

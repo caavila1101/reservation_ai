@@ -24,4 +24,12 @@ public class RetrieveRestaurant implements RetrieveRestaurantDomain {
                 .map(RestaurantEntity::toEntity)
                 .toList();
     }
+
+    @Override
+    public List<Restaurant> findAllCategoriesByCity(String city) {
+        var result = restaurantRepository.findDistinctByCity(city);
+        return result.stream()
+                .map(RestaurantEntity::toEntity)
+                .toList();
+    }
 }

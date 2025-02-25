@@ -20,22 +20,18 @@ public class GetRestaurants {
         this.retrieveRestaurantDomain = retrieveRestaurantDomain;
     }
 
-    public String execute(String promptUser) {
-        String prompt = "Extrae el tipo de restaurante y la ciudad de la consulta del usuario.  \n" +
-                "Corrige errores ortográficos y devuelve ambos en minúsculas y sin tildes.  \n" +
-                "Si el usuario escribe una categoría poco clara, intenta interpretarla según el contexto.  \n" +
-                "Devuélvelos en el formato: categoria, ciudad, sin añadir punto al final.  \n" +
-                "Si falta alguno, usa 0"
-                + promptUser;
-        String extractedInfo = chatModel.call(prompt);
+    public String execute(String categoryRestaurant, String cityRestaurant) {
 
-        String[] parts = extractedInfo.split(",", 2);
-        String categoryRestaurant = parts[0].trim();
-        String cityRestaurant = parts.length > 1 ? parts[1].trim() : "";
+        List<String> categoriesByCity = getCategoriesByCity(cityRestaurant);
 
-        if(categoryRestaurant.length() > 1){
-            if (cityRestaurant.length() > 1){
-                List<String> restaurants = getRestaurantsByType(categoryRestaurant, cityRestaurant);
+        if (!categoriesByCity.isEmpty()){
+            String prompt = "Dada esta lista de categorías: " + categoriesByCity + " y esta categoría ingresada:" + categoryRestaurant +", encuentra la mejor coincidencia basada en similitud semántica o variaciones menores" +
+                    "Si hay una coincidencia, responde solo con el nombre exacto de la categoría encontrada en la lista dada.  \n" +
+                    "Si no hay coincidencias, responde solo con \"0\", sin añadir punto al final";
+            String extractCategory = chatModel.call(prompt).toLowerCase().trim();
+
+            if (extractCategory.length() > 1){
+                List<String> restaurants = getRestaurantsByType(extractCategory, cityRestaurant);
 
                 if (restaurants.isEmpty()) {
                     return "No encontré restaurantes de categoria " + categoryRestaurant + " en " + cityRestaurant;
@@ -44,6 +40,7 @@ public class GetRestaurants {
                 String restaurantList = String.join(", ", restaurants);
                 String responsePrompt = "Responde de forma amigable y breve, usando únicamente la información dada. No agregues datos extra ni describas cada restaurante. Lista de restaurantes de "
                         + categoryRestaurant + " en " + cityRestaurant + ": " + restaurantList;
+
                 return chatModel.call(new Prompt(
                         responsePrompt,
                         OpenAiChatOptions.builder()
@@ -51,18 +48,46 @@ public class GetRestaurants {
                                 .temperature(0.2)
                                 .build()
                 )).getResult().getOutput().getText();
-            }else{
-                return "Por favor, dime en que ciudad quieres ver esta categoria de restaurante: " + categoryRestaurant;
             }
+
+            String promptNotFoundCategory = "Genera un mensaje amigable informando que no encontramos restaurantes de la categoría " + categoryRestaurant +
+                    "' en '" + cityRestaurant +
+                    ", pero que hay disponibles estas categorías: " + categoriesByCity + ", generame una respuesta no tan larga y no saludes.";
+            return chatModel.call(
+                    new Prompt(
+                            promptNotFoundCategory,
+                            OpenAiChatOptions.builder()
+                                    .model("gpt-4o")
+                                    .temperature(0.2)
+                                    .build()
+                    )
+            ).getResult().getOutput().getText();
         }
 
-        return "Por favor, dime qué tipo de restaurante buscas y en qué ciudad lo quieres ver \uD83D\uDE4F";
+        String promptNotFoundCity = "Informa de manera amigable que actualmente no tenemos restaurantes disponibles en " + cityRestaurant + ", generame una respuesta no tan larga  y no saludes.";
+        return chatModel.call(
+                new Prompt(
+                        promptNotFoundCity,
+                        OpenAiChatOptions.builder()
+                                .model("gpt-4o")
+                                .temperature(0.2)
+                                .build()
+                )
+        ).getResult().getOutput().getText();
+
     }
 
     private List<String> getRestaurantsByType(String categoryRestaurant, String cityRestaurant) {
         return retrieveRestaurantDomain.findByType(categoryRestaurant, cityRestaurant)
                 .stream()
                 .map(Restaurant::getName)
+                .toList();
+    }
+
+    private List<String> getCategoriesByCity(String city){
+        return retrieveRestaurantDomain.findAllCategoriesByCity(city)
+                .stream()
+                .map(Restaurant::getCategory)
                 .toList();
     }
 }
