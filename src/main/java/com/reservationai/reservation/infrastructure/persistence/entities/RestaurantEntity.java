@@ -2,6 +2,7 @@ package com.reservationai.reservation.infrastructure.persistence.entities;
 
 import com.reservationai.reservation.domain.Restaurant;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 

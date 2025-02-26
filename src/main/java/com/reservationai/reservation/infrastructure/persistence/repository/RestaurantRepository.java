@@ -10,4 +10,5 @@ import java.util.List;
 public interface RestaurantRepository extends JpaRepository<RestaurantEntity, Long> {
     List<RestaurantEntity> findByCategoryAndCity(String categoryRestaurant, String cityRestaurant);
     List<RestaurantEntity> findDistinctByCity(String city);
+    List<RestaurantEntity> findAllBy();
 }

@@ -6,24 +6,25 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.Map;
 
 @Service
-public class RestaurantByCategoryRouter {
+public class RestaurantByNameRouter {
+
     private final WebClient webClient;
 
-    public RestaurantByCategoryRouter(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl("http://localhost:9090/reservation").build();
+    public RestaurantByNameRouter(WebClient.Builder webClient) {
+        this.webClient = webClient.baseUrl("http://localhost:9090/reservation").build();
     }
 
-    public String searchRestaurantsByCity(String category, String city) {
+    public String searchRestaurantsByName(String name) {
         return webClient.get()
                 .uri(
-                        "/get-restaurants-by-category?category={category}&city={city}",
+                        "/get-restaurant-by-name?name={name}",
                         Map.of(
-                                "category", category,
-                                "city", city
+                                "name", name
                         )
                 )
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
     }
+
 }

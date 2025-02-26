@@ -1,18 +1,21 @@
 package com.reservationai.reservation.application.usecase.intent;
 
 import com.reservationai.reservation.application.usecase.redirect.RestaurantByCategoryRouter;
+import com.reservationai.reservation.application.usecase.redirect.RestaurantByNameRouter;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ObtainIntentUser {
 
-    private final RestaurantByCategoryRouter restaurantByCategoryRouter;
     private final ChatModel chatModel;
+    private final RestaurantByCategoryRouter restaurantByCategoryRouter;
+    private final RestaurantByNameRouter restaurantByNameRouter;
 
-    public ObtainIntentUser(RestaurantByCategoryRouter restaurantByCategoryRouter, ChatModel chatModel) {
-        this.restaurantByCategoryRouter = restaurantByCategoryRouter;
+    public ObtainIntentUser(ChatModel chatModel, RestaurantByCategoryRouter restaurantByCategoryRouter, RestaurantByNameRouter restaurantByNameRouter) {
         this.chatModel = chatModel;
+        this.restaurantByCategoryRouter = restaurantByCategoryRouter;
+        this.restaurantByNameRouter = restaurantByNameRouter;
     }
 
     public String execute(String promptUser) {
@@ -35,8 +38,7 @@ public class ObtainIntentUser {
             case "search_by_category":
                 return handleCategorySearch(data);
             case "search_by_name":
-                return "SERACH_BY_NAME" + data;
-                //return handleRestaurantDetails(data);
+                return handleRestaurantDetails(data);
             default:
                 return "No entendí tu solicitud, ¿puedes reformularla?";
         }
@@ -50,10 +52,10 @@ public class ObtainIntentUser {
         if (category.equals("0")) return "Por favor, dime qué tipo de restaurante buscas.";
         if (city.equals("0")) return "Por favor, dime en qué ciudad quieres buscar.";
 
-        return restaurantByCategoryRouter.searchRestaurants(category, city);
+        return restaurantByCategoryRouter.searchRestaurantsByCity(category, city);
     }
 
-    /*private String handleRestaurantDetails(String restaurantName) {
-        return detailService.getRestaurantDetails(restaurantName);
-    }*/
+    private String handleRestaurantDetails(String city) {
+        return restaurantByNameRouter.searchRestaurantsByName(city);
+    }
 }
