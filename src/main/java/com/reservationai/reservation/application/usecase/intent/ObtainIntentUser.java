@@ -23,25 +23,29 @@ public class ObtainIntentUser {
                 "- Para buscar restaurantes por categoría y ciudad: search_by_category|categoria, ciudad.\n" +
                 "- Para detalles de un restaurante: search_by_name|nombreRestaurante.\n" +
                 "Corrige errores, responde en minúsculas sin tildes y ajusta términos poco claros según el contexto.\n" +
-                "Las ciudades ingresadas son de Colombia, por lo que puedes corregir errores de escritura para mejorar coincidencias sin añadir punto al final: " +
+                "Las ciudades ingresadas son de Colombia, por lo que puedes corregir errores de escritura para mejorar coincidencias sin añadir punto al final.\n" +
+                "Si la entrada no corresponde a ninguno de los formatos indicados, responde con: 0.\n\n" +
                 promptUser;
 
         String extractedInfo = chatModel.call(promptTemplate).toLowerCase().trim();
 
-        String[] parts = extractedInfo.split("\\|", 2);
-        if (parts.length < 2) return "No entendí tu solicitud, ¿puedes reformularla?";
+        if (extractedInfo.length() > 1){
+            String[] parts = extractedInfo.split("\\|", 2);
 
-        String intent = parts[0].trim();
-        String data = parts[1].trim();
+            String intent = parts[0].trim();
+            String data = parts[1].trim();
 
-        switch (intent) {
-            case "search_by_category":
-                return handleCategorySearch(data);
-            case "search_by_name":
-                return handleRestaurantDetails(data);
-            default:
-                return "No entendí tu solicitud, ¿puedes reformularla?";
+            return switch (intent) {
+                case "search_by_category" -> handleCategorySearch(data);
+                case "search_by_name" -> handleRestaurantDetails(data);
+                default -> "";
+            };
         }
+
+        String prompt = "Dile que estas para ayudarlo a encontrar nuevos restaurantes para probar y brindarte información " +
+                "sobre restaurantes específicos. Solo di esto de forma amigable, ya que es la primera vez que usan " +
+                "la aplicación o quieren recordar en qué puedes ayudarles. Y que tu no puedes hacer nada externo al negocio, no saludes";
+        return chatModel.call(prompt);
     }
 
     private String handleCategorySearch(String data) {
