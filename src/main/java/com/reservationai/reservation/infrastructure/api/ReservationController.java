@@ -1,13 +1,12 @@
 package com.reservationai.reservation.infrastructure.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.reservationai.reservation.application.usecase.CreateResturant;
 import com.reservationai.reservation.application.usecase.GetRestaurantByName;
 import com.reservationai.reservation.application.usecase.GetRestaurants;
 import com.reservationai.reservation.application.usecase.intent.ObtainIntentUser;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.reservationai.reservation.infrastructure.api.dto.RestaurantDTO;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/reservation")
@@ -16,11 +15,13 @@ public class ReservationController {
     private final ObtainIntentUser obtainIntentUser;
     private final GetRestaurants getRestaurants;
     private final GetRestaurantByName getRestaurantByName;
+    private final CreateResturant createResturant;
 
-    public ReservationController(ObtainIntentUser obtainIntentUser, GetRestaurants getRestaurants, GetRestaurantByName getRestaurantByName) {
+    public ReservationController(ObtainIntentUser obtainIntentUser, GetRestaurants getRestaurants, GetRestaurantByName getRestaurantByName, CreateResturant createResturant) {
         this.obtainIntentUser = obtainIntentUser;
         this.getRestaurants = getRestaurants;
         this.getRestaurantByName = getRestaurantByName;
+        this.createResturant = createResturant;
     }
 
     @GetMapping("/user-intent")
@@ -36,6 +37,11 @@ public class ReservationController {
     @GetMapping("/get-restaurant-by-name")
     public String getRestaurantsByName(@RequestParam String name) {
         return getRestaurantByName.execute(name);
+    }
+
+    @PostMapping("/create-resturant")
+    public String createRestaurant(@RequestBody RestaurantDTO restaurantDTO){
+        return createResturant.execute(restaurantDTO);
     }
 
 }

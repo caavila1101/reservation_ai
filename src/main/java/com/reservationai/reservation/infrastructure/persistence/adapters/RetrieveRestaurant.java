@@ -2,6 +2,7 @@ package com.reservationai.reservation.infrastructure.persistence.adapters;
 
 import com.reservationai.reservation.domain.Restaurant;
 import com.reservationai.reservation.domain.RestaurantDetail;
+import com.reservationai.reservation.domain.dto.RestaurantDetailDomainDTO;
 import com.reservationai.reservation.domain.ports.RetrieveRestaurantDomain;
 import com.reservationai.reservation.infrastructure.persistence.entities.RestaurantDetailEntity;
 import com.reservationai.reservation.infrastructure.persistence.entities.RestaurantEntity;
@@ -26,7 +27,7 @@ public class RetrieveRestaurant implements RetrieveRestaurantDomain {
     public List<Restaurant> findByType(String categoryRestaurant, String cityRestaurant) {
         var result = restaurantRepository.findByCategoryAndCity(categoryRestaurant, cityRestaurant);
         return result.stream()
-                .map(RestaurantEntity::toEntity)
+                .map(RestaurantEntity::toDomain)
                 .toList();
     }
 
@@ -34,7 +35,7 @@ public class RetrieveRestaurant implements RetrieveRestaurantDomain {
     public List<Restaurant> findAllCategoriesByCity(String city) {
         var result = restaurantRepository.findDistinctByCity(city);
         return result.stream()
-                .map(RestaurantEntity::toEntity)
+                .map(RestaurantEntity::toDomain)
                 .toList();
     }
 
@@ -42,7 +43,7 @@ public class RetrieveRestaurant implements RetrieveRestaurantDomain {
     public List<Restaurant> findAllNamesRestaurants() {
         return restaurantRepository.findAllBy()
                 .stream()
-                .map(RestaurantEntity::toEntity)
+                .map(RestaurantEntity::toDomain)
                 .toList();
     }
 
@@ -50,7 +51,41 @@ public class RetrieveRestaurant implements RetrieveRestaurantDomain {
     public List<RestaurantDetail> findRestaurantByName(String name) {
         var result = restaurantDetailRepository.findByName(name);
         return result.stream()
-                .map(RestaurantDetailEntity::toEntity)
+                .map(RestaurantDetailEntity::toDomain)
                 .toList();
     }
+
+    @Override
+    public List<Restaurant> findRestaurantByNameAndCity(String name, String city) {
+        var result = restaurantRepository.findByNameAndCity(name, city);
+        return result.stream()
+                .map(RestaurantEntity::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Restaurant> createRestaurant(Restaurant restaurant) {
+        RestaurantEntity restaurantEntity = RestaurantEntity.builder()
+                .name(restaurant.getName())
+                .category(restaurant.getCategory())
+                .city(restaurant.getCity())
+                .build();
+
+        return List.of(restaurantRepository.save(restaurantEntity).toDomain());
+    }
+
+    @Override
+    public List<RestaurantDetail> createDetailRestaurant(RestaurantDetailDomainDTO restaurantDetailDomainDTO) {
+        RestaurantDetailEntity restaurantDetail = RestaurantDetailEntity.builder()
+                .name(restaurantDetailDomainDTO.getName())
+                .address(restaurantDetailDomainDTO.getAddress())
+                .description(restaurantDetailDomainDTO.getDescription())
+                .url(restaurantDetailDomainDTO.getUrl())
+                .city(restaurantDetailDomainDTO.getCity())
+                .build();
+
+        return List.of(restaurantDetailRepository.save(restaurantDetail).toDomain());
+    }
+
+
 }

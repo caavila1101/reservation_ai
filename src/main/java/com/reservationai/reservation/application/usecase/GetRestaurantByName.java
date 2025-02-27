@@ -63,9 +63,16 @@ public class GetRestaurantByName {
         String urlRestaurant = restaurantName.getUrl();
         String cityRestaurant = restaurantName.getCity();
 
-        String responsePrompt = "Responde de forma amigable, usando únicamente la información dada. Usa esta data que te paso y dile al usuario que encontraste " +
-                "el restaurante y devuelvele esta informacion: " + nameRestaurant + addressRestaurant + descriptionRestaurant + urlRestaurant + cityRestaurant;
+        String responsePrompt = "Responde de forma amigable y clara, sin usar negritas ni formato especial. " +
+                "Dile al usuario que encontraste el restaurante que buscaba con los siguientes detalles y agrega emojis adecuados:" +
+                "\n\n📌 Nombre: " + nameRestaurant +
+                "\n📍 Dirección: " + addressRestaurant +
+                "\n📝 Descripción: " + descriptionRestaurant +
+                "\n📖 Menú: " + urlRestaurant +
+                "\n🌆 Ciudad: " + cityRestaurant +
+                "\n\nEspero que esta información te sea útil. ¡Disfruta tu visita! 😊";
         return responsePrompt;
+
     }
 
     private String getString(String name) {

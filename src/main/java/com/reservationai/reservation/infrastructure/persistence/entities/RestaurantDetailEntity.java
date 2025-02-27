@@ -2,9 +2,11 @@ package com.reservationai.reservation.infrastructure.persistence.entities;
 
 import com.reservationai.reservation.domain.RestaurantDetail;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "restaurant_info")
 @Getter
@@ -20,18 +22,7 @@ public class RestaurantDetailEntity {
     private String url;
     private String city;
 
-    public RestaurantDetailEntity(){}
-
-    public RestaurantDetailEntity(Long id, String name, String address, String description, String url, String city) {
-        this.id = id;
-        this.name = name;
-        this.address = address;
-        this.description = description;
-        this.url = url;
-        this.city = city;
-    }
-
-    public RestaurantDetail toEntity(){
+    public RestaurantDetail toDomain(){
         return RestaurantDetail.builder()
                 .id(this.id)
                 .name(this.name)

@@ -11,8 +11,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RestaurantDetail {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private Long id;
     private String name;
     private String address;
@@ -28,4 +27,6 @@ public class RestaurantDetail {
         this.url = url;
         this.city = city;
     }
+
+
 }
