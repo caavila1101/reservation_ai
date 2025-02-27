@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface RestaurantRepository extends JpaRepository<RestaurantEntity, Long> {
+public interface RestaurantRepository extends JpaRepository<RestaurantEntity, String> {
     List<RestaurantEntity> findByCategoryAndCity(String categoryRestaurant, String cityRestaurant);
     List<RestaurantEntity> findDistinctByCity(String city);
     List<RestaurantEntity> findAllBy();

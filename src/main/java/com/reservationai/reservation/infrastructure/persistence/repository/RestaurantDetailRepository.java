@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface RestaurantDetailRepository extends JpaRepository<RestaurantDetailEntity, Long> {
+public interface RestaurantDetailRepository extends JpaRepository<RestaurantDetailEntity, String> {
     List<RestaurantDetailEntity> findByName(String name);
 }

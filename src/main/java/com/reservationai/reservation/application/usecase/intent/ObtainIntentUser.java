@@ -1,8 +1,10 @@
 package com.reservationai.reservation.application.usecase.intent;
 
+import com.reservationai.reservation.application.usecase.redirect.CreateOwnRestaurantRouter;
 import com.reservationai.reservation.application.usecase.redirect.CreateRestaurantRouter;
 import com.reservationai.reservation.application.usecase.redirect.RestaurantByCategoryRouter;
 import com.reservationai.reservation.application.usecase.redirect.RestaurantByNameRouter;
+import com.reservationai.reservation.infrastructure.api.dto.OwnRestaurantDTO;
 import com.reservationai.reservation.infrastructure.api.dto.RestaurantDTO;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -16,12 +18,14 @@ public class ObtainIntentUser {
     private final RestaurantByCategoryRouter restaurantByCategoryRouter;
     private final RestaurantByNameRouter restaurantByNameRouter;
     private final CreateRestaurantRouter createRestaurantRouter;
+    private final CreateOwnRestaurantRouter createOwnRestaurantRouter;
 
-    public ObtainIntentUser(ChatModel chatModel, RestaurantByCategoryRouter restaurantByCategoryRouter, RestaurantByNameRouter restaurantByNameRouter, CreateRestaurantRouter createRestaurantRouter) {
+    public ObtainIntentUser(ChatModel chatModel, RestaurantByCategoryRouter restaurantByCategoryRouter, RestaurantByNameRouter restaurantByNameRouter, CreateRestaurantRouter createRestaurantRouter, CreateOwnRestaurantRouter createOwnRestaurantRouter) {
         this.chatModel = chatModel;
         this.restaurantByCategoryRouter = restaurantByCategoryRouter;
         this.restaurantByNameRouter = restaurantByNameRouter;
         this.createRestaurantRouter = createRestaurantRouter;
+        this.createOwnRestaurantRouter = createOwnRestaurantRouter;
     }
 
     public String execute(String promptUser) {
@@ -29,9 +33,10 @@ public class ObtainIntentUser {
                 "- Para buscar restaurantes por categoría y ciudad: search_by_category|categoria, ciudad\n" +
                 "- Para detalles de un restaurante: search_by_name|nombreRestaurante\n" +
                 "- Para crear un resturante, puede que url no envien nada entonces envia en url vacio y detecta bien cual es la descripcion: create_restaurant|nombre-categoria-ciudad-direccion-descripcion-url" +
+                "- Para crear un usuario (NO modifiques ni corrijas estos datos, mantenlos exactamente como fueron ingresados por el usuario): create_own_restaurant|usuario, email, contraseña" +
                 "Corrige errores, responde en minúsculas sin tildes y ajusta términos poco claros según el contexto.\n" +
-                "Las ciudades ingresadas son de Colombia, por lo que puedes corregir errores de escritura para mejorar coincidencias sin añadir punto al final.\n" +
-                "Si la entrada no corresponde a ninguno de los formatos indicados, responde con: 0.\n\n" +
+                "Las ciudades ingresadas son de Colombia, por lo que puedes corregir errores de escritura para mejorar coincidencias\n" +
+                "Si la entrada no corresponde a ninguno de los formatos indicados, responde con: 0\n\n" +
                 promptUser;
 
         String extractedInfo = chatModel.call(
@@ -53,6 +58,7 @@ public class ObtainIntentUser {
                 case "search_by_category" -> handleCategorySearch(data);
                 case "search_by_name" -> handleRestaurantDetails(data);
                 case "create_restaurant" -> handleCreateRestaurant(data);
+                case "create_own_restaurant" -> handleCreateOwnRestaurant(data);
                 default -> "";
             };
         }
@@ -98,5 +104,20 @@ public class ObtainIntentUser {
                 .build();
 
         return createRestaurantRouter.createRestaurant(restaurantDTO);
+    }
+
+    private String handleCreateOwnRestaurant(String data) {
+        String[] parts = data.split(",", 3);
+        String user = parts[0].trim();
+        String email = parts[1].trim();
+        String password = parts[2].trim();
+
+        OwnRestaurantDTO ownRestaurantDTO = OwnRestaurantDTO.builder()
+                .user(user)
+                .email(email)
+                .password(password)
+                .build();
+
+        return createOwnRestaurantRouter.createOwnRestaurant(ownRestaurantDTO);
     }
 }

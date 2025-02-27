@@ -26,7 +26,6 @@ public class RestaurantReviewsEntity {
     private String restaurantCity;
     private String comment;
     private Integer rating;
-    @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
