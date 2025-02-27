@@ -38,7 +38,7 @@ public class GetRestaurants {
                 }
 
                 String restaurantList = String.join(", ", restaurants);
-                String responsePrompt = "Responde de forma amigable y breve, usando únicamente la información dada. No agregues datos extra ni describas cada restaurante. Lista de restaurantes de "
+                String responsePrompt = "Responde de forma amigable y breve, usando solo la información proporcionada y con emojis. Primero, menciona la lista de restaurantes disponibles sin describirlos. Luego, indica que si el usuario quiere más información sobre alguno en particular, puede mencionarlo. No agregues datos adicionales ni inventes información. Lista de restaurantes de "
                         + categoryRestaurant + " en " + cityRestaurant + ": " + restaurantList;
 
                 return chatModel.call(new Prompt(

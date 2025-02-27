@@ -5,6 +5,8 @@ import com.reservationai.reservation.application.usecase.redirect.RestaurantByCa
 import com.reservationai.reservation.application.usecase.redirect.RestaurantByNameRouter;
 import com.reservationai.reservation.infrastructure.api.dto.RestaurantDTO;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,13 +28,20 @@ public class ObtainIntentUser {
         String promptTemplate = "Determina la intención del usuario y responde en este formato:\n" +
                 "- Para buscar restaurantes por categoría y ciudad: search_by_category|categoria, ciudad\n" +
                 "- Para detalles de un restaurante: search_by_name|nombreRestaurante\n" +
-                "- Para crear un resturante: create_restaurant|nombre-categoria-ciudad-direccion-descripcion-url" +
+                "- Para crear un resturante, puede que url no envien nada entonces envia en url vacio y detecta bien cual es la descripcion: create_restaurant|nombre-categoria-ciudad-direccion-descripcion-url" +
                 "Corrige errores, responde en minúsculas sin tildes y ajusta términos poco claros según el contexto.\n" +
                 "Las ciudades ingresadas son de Colombia, por lo que puedes corregir errores de escritura para mejorar coincidencias sin añadir punto al final.\n" +
                 "Si la entrada no corresponde a ninguno de los formatos indicados, responde con: 0.\n\n" +
                 promptUser;
 
-        String extractedInfo = chatModel.call(promptTemplate).toLowerCase().trim();
+        String extractedInfo = chatModel.call(
+                new Prompt(
+                        promptTemplate,
+                        OpenAiChatOptions.builder()
+                                .model("gpt-4o")
+                                .temperature(0.3)
+                                .build()
+                )).getResult().getOutput().getText().toLowerCase().trim();
 
         if (extractedInfo.length() > 1){
             String[] parts = extractedInfo.split("\\|", 2);

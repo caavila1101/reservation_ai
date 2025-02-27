@@ -8,8 +8,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RestaurantDetailDomainDTO {
+    private String id;
     private String name;
-    private String category;
     private String city;
     private String address;
     private String description;

@@ -1,27 +1,26 @@
 package com.reservationai.reservation.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Builder
 @Getter
 @Setter
 public class Restaurant {
 
-    private Long id;
+    private String id;
     private String name;
     private String category;
     private String city;
-
-    public Restaurant(Long id, String name, String category, String city) {
-        this.id = id;
-        this.name = name;
-        this.category = category;
-        this.city = city;
-    }
+    private String userOwner;
+    private LocalDateTime createdAt;
 
 }

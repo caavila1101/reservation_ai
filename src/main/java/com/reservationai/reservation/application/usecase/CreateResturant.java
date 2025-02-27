@@ -12,6 +12,7 @@ import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class CreateResturant {
@@ -27,13 +28,18 @@ public class CreateResturant {
     @Transactional
     public String execute(RestaurantDTO restaurantDTO) {
         try {
+            UUID uuid = UUID.randomUUID();
+            String uuidRestaurant = uuid.toString();
+
             Restaurant restaurant = Restaurant.builder()
+                    .id(uuidRestaurant)
                     .name(restaurantDTO.getName())
                     .category(restaurantDTO.getCategory())
                     .city(restaurantDTO.getCity())
                     .build();
 
             RestaurantDetailDomainDTO restaurantDetail = RestaurantDetailDomainDTO.builder()
+                    .id(uuidRestaurant)
                     .name(restaurantDTO.getName())
                     .address(restaurantDTO.getAddress())
                     .description(restaurantDTO.getDescription())
@@ -49,7 +55,7 @@ public class CreateResturant {
 
                 if (!restaurantList.isEmpty() && !restaurantDetailList.isEmpty()) {
                     return chatModel.call(new Prompt(
-                            "Confirma de manera amigable que el restaurante fue creado exitosamente, sin repetir los datos proporcionados, utiliza emojis. Dandole bienvenida a nuestara aplicacion llamada GastroGo",
+                            "Confirma de manera amigable que el restaurante " + restaurantList.get(0).getName() + " fue creado exitosamente, utiliza emojis. Dandole bienvenida calurosa a la aplicacion llamada GastroGo",
                             OpenAiChatOptions.builder()
                                     .model("gpt-4o")
                                     .temperature(0.3)

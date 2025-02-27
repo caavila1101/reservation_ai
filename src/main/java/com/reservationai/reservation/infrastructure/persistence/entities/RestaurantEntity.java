@@ -3,6 +3,9 @@ package com.reservationai.reservation.infrastructure.persistence.entities;
 import com.reservationai.reservation.domain.Restaurant;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Builder
 @NoArgsConstructor
@@ -14,12 +17,14 @@ import lombok.*;
 public class RestaurantEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private String name;
     private String category;
     private String city;
+    private String userOwner;
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
 
     public Restaurant toDomain(){
         return Restaurant.builder()
@@ -27,6 +32,7 @@ public class RestaurantEntity {
                 .name(this.name)
                 .category(this.category)
                 .city(this.city)
+                .createdAt(createdAt)
                 .build();
     }
 }

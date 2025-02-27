@@ -10,6 +10,7 @@ import com.reservationai.reservation.infrastructure.persistence.repository.Resta
 import com.reservationai.reservation.infrastructure.persistence.repository.RestaurantRepository;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -66,9 +67,11 @@ public class RetrieveRestaurant implements RetrieveRestaurantDomain {
     @Override
     public List<Restaurant> createRestaurant(Restaurant restaurant) {
         RestaurantEntity restaurantEntity = RestaurantEntity.builder()
+                .id(restaurant.getId())
                 .name(restaurant.getName())
                 .category(restaurant.getCategory())
                 .city(restaurant.getCity())
+                .createdAt(LocalDateTime.now())
                 .build();
 
         return List.of(restaurantRepository.save(restaurantEntity).toDomain());
@@ -77,11 +80,13 @@ public class RetrieveRestaurant implements RetrieveRestaurantDomain {
     @Override
     public List<RestaurantDetail> createDetailRestaurant(RestaurantDetailDomainDTO restaurantDetailDomainDTO) {
         RestaurantDetailEntity restaurantDetail = RestaurantDetailEntity.builder()
+                .id(restaurantDetailDomainDTO.getId())
                 .name(restaurantDetailDomainDTO.getName())
                 .address(restaurantDetailDomainDTO.getAddress())
                 .description(restaurantDetailDomainDTO.getDescription())
                 .url(restaurantDetailDomainDTO.getUrl())
                 .city(restaurantDetailDomainDTO.getCity())
+                .createdAt(LocalDateTime.now())
                 .build();
 
         return List.of(restaurantDetailRepository.save(restaurantDetail).toDomain());
