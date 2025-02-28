@@ -11,5 +11,5 @@ public interface RestaurantRepository extends JpaRepository<RestaurantEntity, St
     List<RestaurantEntity> findByCategoryAndCity(String categoryRestaurant, String cityRestaurant);
     List<RestaurantEntity> findDistinctByCity(String city);
     List<RestaurantEntity> findAllBy();
-    List<RestaurantEntity> findByNameAndCity(String name, String city);
+    Boolean existsByNameAndCity(String name, String city);
 }

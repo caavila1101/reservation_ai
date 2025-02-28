@@ -32,10 +32,12 @@ public class ObtainIntentUser {
         String promptTemplate = "Determina la intención del usuario y responde en este formato:\n" +
                 "- Para buscar restaurantes por categoría y ciudad: search_by_category|categoria, ciudad\n" +
                 "- Para detalles de un restaurante: search_by_name|nombreRestaurante\n" +
-                "- Para crear un resturante, puede que url no envien nada entonces envia en url vacio y detecta bien cual es la descripcion: create_restaurant|nombre-categoria-ciudad-direccion-descripcion-url" +
-                "- Para crear un usuario (NO modifiques ni corrijas estos datos, mantenlos exactamente como fueron ingresados por el usuario): create_own_restaurant|usuario, email, contraseña" +
+                "- Para crear un restaurante, si no se proporciona la URL, usa un valor vacío (\"\"). Si no se detectan usuario y contraseña, usa valores vacíos (\"\"): \n" +
+                "  create_restaurant|nombre-categoria-ciudad-direccion-descripcion-url-usuario-contraseña\n" +
+                "- Para crear un usuario (NO modifiques ni corrijas estos datos, mantenlos exactamente como fueron ingresados por el usuario): \n" +
+                "  create_own_restaurant|usuario, email, contraseña\n" +
                 "Corrige errores, responde en minúsculas sin tildes y ajusta términos poco claros según el contexto.\n" +
-                "Las ciudades ingresadas son de Colombia, por lo que puedes corregir errores de escritura para mejorar coincidencias\n" +
+                "Las ciudades ingresadas son de Colombia, por lo que puedes corregir errores de escritura para mejorar coincidencias.\n" +
                 "Si la entrada no corresponde a ninguno de los formatos indicados, responde con: 0\n\n" +
                 promptUser;
 
@@ -86,13 +88,15 @@ public class ObtainIntentUser {
 
     //nombre, categoria, ciudad, direccion, descripcion, url
     private String handleCreateRestaurant(String data){
-        String[] parts = data.split("-", 6);
+        String[] parts = data.split("-", 8);
         String name = parts[0].trim();
         String category = parts[1].trim();
         String city = parts[2].trim();
         String address = parts[3].trim();
         String description = parts[4].trim();
-        String url = (parts.length > 5 && !parts[5].trim().isEmpty()) ? parts[5].trim() : "";
+        String url = !parts[5].trim().isEmpty() ? parts[5].trim() : "";
+        String user = !parts[6].trim().isEmpty() ? parts[6].trim() : "";
+        String password = !parts[7].trim().isEmpty() ? parts[7].trim() : "";
 
         RestaurantDTO restaurantDTO = RestaurantDTO.builder()
                 .name(name)
@@ -101,6 +105,8 @@ public class ObtainIntentUser {
                 .address(address)
                 .description(description)
                 .url(url)
+                .user(user)
+                .password(password)
                 .build();
 
         return createRestaurantRouter.createRestaurant(restaurantDTO);

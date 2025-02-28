@@ -14,5 +14,7 @@ public class RestaurantDTO {
     private String address;
     private String description;
     private String url;
+    private String user;
+    private String password;
 
 }

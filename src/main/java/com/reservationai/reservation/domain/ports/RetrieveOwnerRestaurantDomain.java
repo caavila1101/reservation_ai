@@ -8,4 +8,5 @@ public interface RetrieveOwnerRestaurantDomain {
     List<OwnRestaurant> getOwnerByUser(String user);
     List<OwnRestaurant> getOwnerByEmail(String email);
     List<OwnRestaurant> createOwner(OwnRestaurant ownRestaurant);
+    Boolean existsUser(String user, String password);
 }

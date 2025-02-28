@@ -2,7 +2,6 @@ package com.reservationai.reservation.infrastructure.persistence.adapters;
 
 import com.reservationai.reservation.domain.Restaurant;
 import com.reservationai.reservation.domain.RestaurantDetail;
-import com.reservationai.reservation.domain.dto.RestaurantDetailDomainDTO;
 import com.reservationai.reservation.domain.ports.RetrieveRestaurantDomain;
 import com.reservationai.reservation.infrastructure.persistence.entities.RestaurantDetailEntity;
 import com.reservationai.reservation.infrastructure.persistence.entities.RestaurantEntity;
@@ -57,11 +56,8 @@ public class RetrieveRestaurant implements RetrieveRestaurantDomain {
     }
 
     @Override
-    public List<Restaurant> findRestaurantByNameAndCity(String name, String city) {
-        var result = restaurantRepository.findByNameAndCity(name, city);
-        return result.stream()
-                .map(RestaurantEntity::toDomain)
-                .toList();
+    public Boolean findRestaurantByNameAndCity(String name, String city) {
+        return restaurantRepository.existsByNameAndCity(name, city);
     }
 
     @Override
@@ -71,6 +67,7 @@ public class RetrieveRestaurant implements RetrieveRestaurantDomain {
                 .name(restaurant.getName())
                 .category(restaurant.getCategory())
                 .city(restaurant.getCity())
+                .userOwner(restaurant.getUserOwner())
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -78,14 +75,15 @@ public class RetrieveRestaurant implements RetrieveRestaurantDomain {
     }
 
     @Override
-    public List<RestaurantDetail> createDetailRestaurant(RestaurantDetailDomainDTO restaurantDetailDomainDTO) {
+    public List<RestaurantDetail> createDetailRestaurant(RestaurantDetail restaurantDetailInput) {
         RestaurantDetailEntity restaurantDetail = RestaurantDetailEntity.builder()
-                .id(restaurantDetailDomainDTO.getId())
-                .name(restaurantDetailDomainDTO.getName())
-                .address(restaurantDetailDomainDTO.getAddress())
-                .description(restaurantDetailDomainDTO.getDescription())
-                .url(restaurantDetailDomainDTO.getUrl())
-                .city(restaurantDetailDomainDTO.getCity())
+                .id(restaurantDetailInput.getId())
+                .name(restaurantDetailInput.getName())
+                .address(restaurantDetailInput.getAddress())
+                .description(restaurantDetailInput.getDescription())
+                .url(restaurantDetailInput.getUrl())
+                .city(restaurantDetailInput.getCity())
+                .userOwner(restaurantDetailInput.getUserOwner())
                 .createdAt(LocalDateTime.now())
                 .build();
 

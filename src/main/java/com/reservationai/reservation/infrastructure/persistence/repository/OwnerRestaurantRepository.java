@@ -10,5 +10,6 @@ import java.util.List;
 public interface OwnerRestaurantRepository extends JpaRepository<RestaurantOwnerEntity, String> {
     List<RestaurantOwnerEntity> findByUser(String user);
     List<RestaurantOwnerEntity> findByEmail(String email);
+    Boolean existsByUserAndPassword(String user, String password);
 
 }

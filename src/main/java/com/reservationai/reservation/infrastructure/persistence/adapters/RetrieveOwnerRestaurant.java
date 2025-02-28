@@ -42,4 +42,9 @@ public class RetrieveOwnerRestaurant implements RetrieveOwnerRestaurantDomain {
 
         return List.of(ownerRestaurantRepository.save(restaurantOwnerEntity).toDomain());
     }
+
+    @Override
+    public Boolean existsUser(String user, String password) {
+        return ownerRestaurantRepository.existsByUserAndPassword(user, password);
+    }
 }

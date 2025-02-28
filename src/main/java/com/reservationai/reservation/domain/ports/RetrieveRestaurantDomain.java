@@ -2,7 +2,6 @@ package com.reservationai.reservation.domain.ports;
 
 import com.reservationai.reservation.domain.Restaurant;
 import com.reservationai.reservation.domain.RestaurantDetail;
-import com.reservationai.reservation.domain.dto.RestaurantDetailDomainDTO;
 
 import java.util.List;
 
@@ -12,6 +11,6 @@ public interface RetrieveRestaurantDomain {
     List<Restaurant> findAllNamesRestaurants();
     List<RestaurantDetail> findRestaurantByName(String name);
     List<Restaurant> createRestaurant(Restaurant restaurant);
-    List<RestaurantDetail> createDetailRestaurant(RestaurantDetailDomainDTO restaurantDetailDomainDTO);
-    List<Restaurant> findRestaurantByNameAndCity(String name, String city);
+    List<RestaurantDetail> createDetailRestaurant(RestaurantDetail restaurantDetail);
+    Boolean findRestaurantByNameAndCity(String name, String city);
 }

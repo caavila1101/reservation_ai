@@ -6,6 +6,7 @@ import com.reservationai.reservation.domain.ports.RetrieveOwnerRestaurantDomain;
 import com.reservationai.reservation.infrastructure.api.dto.OwnRestaurantDTO;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import java.util.List;
 import java.util.UUID;
@@ -45,7 +46,7 @@ public class CreateOwnRestaurant {
                 .id(uuidOwn)
                 .user(ownRestaurantDTO.getUser())
                 .email(ownRestaurantDTO.getEmail())
-                .password(ownRestaurantDTO.getPassword())
+                .password(DigestUtils.sha256Hex(ownRestaurantDTO.getPassword()))
                 .build();
 
         List<OwnRestaurant> createOwnerRestaurant = createOwner(ownRestaurant);
@@ -71,4 +72,5 @@ public class CreateOwnRestaurant {
     private List<OwnRestaurant> createOwner(OwnRestaurant ownRestaurant){
         return retrieveOwnerRestaurantDomain.createOwner(ownRestaurant);
     }
+
 }
