@@ -2,6 +2,7 @@ package com.reservationai.reservation.application.usecase;
 
 import com.reservationai.reservation.domain.Restaurant;
 import com.reservationai.reservation.domain.RestaurantDetail;
+import com.reservationai.reservation.domain.ports.AIService;
 import com.reservationai.reservation.domain.ports.RetrieveRestaurantDomain;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -13,46 +14,30 @@ import java.util.List;
 @Service
 public class GetRestaurantByName {
 
-    private final ChatModel chatModel;
     private final RetrieveRestaurantDomain retrieveRestaurantDomain;
+    private final AIService aiService;
 
-    public GetRestaurantByName(ChatModel chatModel, RetrieveRestaurantDomain retrieveRestaurantDomain) {
-        this.chatModel = chatModel;
+    public GetRestaurantByName(RetrieveRestaurantDomain retrieveRestaurantDomain, AIService aiService) {
         this.retrieveRestaurantDomain = retrieveRestaurantDomain;
+        this.aiService = aiService;
     }
 
     public String execute(String name) {
         String prompt = getString(name);
-        String extractName = chatModel.call(prompt).toLowerCase().trim();
+        String extractName = aiService.createAnswer(prompt).toLowerCase().trim();
 
         if(extractName.length() > 1){
             List<RestaurantDetail> restaurantByName = getCategoriesByName(extractName);
 
             if(!restaurantByName.isEmpty()){
                 String responsePrompt = getString(restaurantByName);
-
-                return chatModel.call(new Prompt(
-                        responsePrompt,
-                        OpenAiChatOptions.builder()
-                                .model("gpt-4o")
-                                .temperature(0.2)
-                                .build()
-                )).getResult().getOutput().getText();
+                return aiService.createAnswer(responsePrompt);
             }
         }
 
         String promptNotFoundName = "Genera un mensaje amigable informando que no encontramos restaurantes con el nombre" + name +
                 ", generame una respuesta no tan larga y no saludes.";
-        return chatModel.call(
-                new Prompt(
-                        promptNotFoundName,
-                        OpenAiChatOptions.builder()
-                                .model("gpt-4o")
-                                .temperature(0.2)
-                                .build()
-                )
-        ).getResult().getOutput().getText();
-
+        return aiService.createAnswer(promptNotFoundName);
     }
 
     private static String getString(List<RestaurantDetail> restaurantByName) {

@@ -4,6 +4,7 @@ import com.reservationai.reservation.application.usecase.redirect.CreateOwnResta
 import com.reservationai.reservation.application.usecase.redirect.CreateRestaurantRouter;
 import com.reservationai.reservation.application.usecase.redirect.RestaurantByCategoryRouter;
 import com.reservationai.reservation.application.usecase.redirect.RestaurantByNameRouter;
+import com.reservationai.reservation.domain.ports.AIService;
 import com.reservationai.reservation.infrastructure.api.dto.OwnRestaurantDTO;
 import com.reservationai.reservation.infrastructure.api.dto.RestaurantDTO;
 import org.springframework.ai.chat.model.ChatModel;
@@ -14,25 +15,25 @@ import org.springframework.stereotype.Service;
 @Service
 public class ObtainIntentUser {
 
-    private final ChatModel chatModel;
     private final RestaurantByCategoryRouter restaurantByCategoryRouter;
     private final RestaurantByNameRouter restaurantByNameRouter;
     private final CreateRestaurantRouter createRestaurantRouter;
     private final CreateOwnRestaurantRouter createOwnRestaurantRouter;
+    private final AIService aiService;
 
-    public ObtainIntentUser(ChatModel chatModel, RestaurantByCategoryRouter restaurantByCategoryRouter, RestaurantByNameRouter restaurantByNameRouter, CreateRestaurantRouter createRestaurantRouter, CreateOwnRestaurantRouter createOwnRestaurantRouter) {
-        this.chatModel = chatModel;
+    public ObtainIntentUser(RestaurantByCategoryRouter restaurantByCategoryRouter, RestaurantByNameRouter restaurantByNameRouter, CreateRestaurantRouter createRestaurantRouter, CreateOwnRestaurantRouter createOwnRestaurantRouter, AIService aiService) {
         this.restaurantByCategoryRouter = restaurantByCategoryRouter;
         this.restaurantByNameRouter = restaurantByNameRouter;
         this.createRestaurantRouter = createRestaurantRouter;
         this.createOwnRestaurantRouter = createOwnRestaurantRouter;
+        this.aiService = aiService;
     }
 
     public String execute(String promptUser) {
         String promptTemplate = "Determina la intención del usuario y responde en este formato:\n" +
                 "- Para buscar restaurantes por categoría y ciudad: search_by_category|categoria, ciudad\n" +
                 "- Para detalles de un restaurante: search_by_name|nombreRestaurante\n" +
-                "- Para crear un restaurante, si no se proporciona la URL, usa un valor vacío (\"\"). Si no se detectan usuario y contraseña, usa valores vacíos (\"\"): \n" +
+                "- Para crear un restaurante, si no se proporciona la URL, usa un valor vacío (\"\"). Si no se detectan usuario y contraseña, usa valores vacíos (\"\") y (NO modifiques ni corrijas estos datos, mantenlos exactamente como fueron ingresados por el usuario): \n" +
                 "  create_restaurant|nombre-categoria-ciudad-direccion-descripcion-url-usuario-contraseña\n" +
                 "- Para crear un usuario (NO modifiques ni corrijas estos datos, mantenlos exactamente como fueron ingresados por el usuario): \n" +
                 "  create_own_restaurant|usuario, email, contraseña\n" +
@@ -40,15 +41,7 @@ public class ObtainIntentUser {
                 "Las ciudades ingresadas son de Colombia, por lo que puedes corregir errores de escritura para mejorar coincidencias.\n" +
                 "Si la entrada no corresponde a ninguno de los formatos indicados, responde con: 0\n\n" +
                 promptUser;
-
-        String extractedInfo = chatModel.call(
-                new Prompt(
-                        promptTemplate,
-                        OpenAiChatOptions.builder()
-                                .model("gpt-4o")
-                                .temperature(0.3)
-                                .build()
-                )).getResult().getOutput().getText().toLowerCase().trim();
+        String extractedInfo = aiService.createAnswer(promptTemplate).trim();
 
         if (extractedInfo.length() > 1){
             String[] parts = extractedInfo.split("\\|", 2);
@@ -68,7 +61,7 @@ public class ObtainIntentUser {
         String prompt = "Dile que estas para ayudarlo a encontrar nuevos restaurantes para probar y brindarte información " +
                 "sobre restaurantes específicos. Solo di esto de forma amigable, ya que es la primera vez que usan " +
                 "la aplicación o quieren recordar en qué puedes ayudarles. Y que tu no puedes hacer nada externo al negocio, no saludes";
-        return chatModel.call(prompt);
+        return aiService.createAnswer(prompt);
     }
 
     private String handleCategorySearch(String data) {

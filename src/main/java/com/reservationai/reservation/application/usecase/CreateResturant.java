@@ -3,6 +3,7 @@ package com.reservationai.reservation.application.usecase;
 import com.reservationai.reservation.domain.OwnRestaurant;
 import com.reservationai.reservation.domain.Restaurant;
 import com.reservationai.reservation.domain.RestaurantDetail;
+import com.reservationai.reservation.domain.ports.AIService;
 import com.reservationai.reservation.domain.ports.RetrieveOwnerRestaurantDomain;
 import com.reservationai.reservation.domain.ports.RetrieveRestaurantDomain;
 import com.reservationai.reservation.infrastructure.api.dto.RestaurantDTO;
@@ -19,14 +20,14 @@ import java.util.UUID;
 @Service
 public class CreateResturant {
 
-    private final ChatModel chatModel;
     private final RetrieveRestaurantDomain retrieveRestaurantDomain;
     private final RetrieveOwnerRestaurantDomain retrieveOwnerRestaurantDomain;
+    private final AIService aiService;
 
-    public CreateResturant(ChatModel chatModel, RetrieveRestaurantDomain retrieveRestaurantDomain, RetrieveOwnerRestaurantDomain retrieveOwnerRestaurantDomain) {
-        this.chatModel = chatModel;
+    public CreateResturant(RetrieveRestaurantDomain retrieveRestaurantDomain, RetrieveOwnerRestaurantDomain retrieveOwnerRestaurantDomain, AIService aiService) {
         this.retrieveRestaurantDomain = retrieveRestaurantDomain;
         this.retrieveOwnerRestaurantDomain = retrieveOwnerRestaurantDomain;
+        this.aiService = aiService;
     }
 
     @Transactional
@@ -66,24 +67,15 @@ public class CreateResturant {
                         List<RestaurantDetail> restaurantDetailList = createDetailRestaurant(restaurantDetail);
 
                         if (!restaurantList.isEmpty() && !restaurantDetailList.isEmpty()) {
-                            return chatModel.call(new Prompt(
-                                    "Confirma de manera amigable que el restaurante " + restaurantList.get(0).getName() + " fue creado exitosamente, utiliza emojis. Dandole bienvenida calurosa a la aplicacion llamada GastroGo",
-                                    OpenAiChatOptions.builder()
-                                            .model("gpt-4o")
-                                            .temperature(0.3)
-                                            .build()
-                            )).getResult().getOutput().getText();
+                            String responsePrompt = "Confirma de manera amigable que el restaurante " + restaurantList.get(0).getName() + " fue creado exitosamente, utiliza emojis. " +
+                                    "Dandole bienvenida calurosa a la aplicacion llamada GastroGo";
+                            return aiService.createAnswer(responsePrompt);
                         }
                     }
 
-                    return chatModel.call(new Prompt(
-                            "Aviso al usuario que el restaurante " + restaurant.getName() + " ubicado en " + restaurant.getCity() +
-                                    ", ya ha sido registrado previamente. Lamentablemente, no es posible crear un duplicado, utiliza emojis",
-                            OpenAiChatOptions.builder()
-                                    .model("gpt-4o")
-                                    .temperature(0.3)
-                                    .build()
-                    )).getResult().getOutput().getText();
+                    String responsePrompt  = "Aviso al usuario que el restaurante " + restaurant.getName() + " ubicado en " + restaurant.getCity() +
+                            ", ya ha sido registrado previamente. Lamentablemente, no es posible crear un duplicado, utiliza emojis";
+                    return aiService.createAnswer(responsePrompt);
                 }
 
                 String prompt = "Antes de crear un restaurante, verifica primero si las credenciales ingresadas son correctas. 🔍\n\n" +
@@ -93,14 +85,7 @@ public class CreateResturant {
                         "- 📧 Email: Una dirección de correo electrónico válida.\n" +
                         "- 🔑 Contraseña: Una clave segura para acceder a tu cuenta.\n\n" +
                         "Una vez registrado, podrás proceder a crear tu restaurante. 🍽️";
-                return chatModel.call(new Prompt(
-                        prompt,
-                        OpenAiChatOptions.builder()
-                                .model("gpt-4o")
-                                .temperature(0.3)
-                                .build()
-                )).getResult().getOutput().getText();
-
+                return aiService.createAnswer(prompt);
 
             }
 
@@ -109,17 +94,11 @@ public class CreateResturant {
                     "\"🚀 Para continuar con la creación de tu restaurante, necesitamos que ingreses un usuario y una contraseña. 🔑 " +
                     "Por favor, proporciona estos datos para seguir adelante. ¡Gracias! 😊\"\n\n" +
                     "Asegúrate de que el mensaje sea claro y amigable, usando emojis.";
-            return chatModel.call(new Prompt(
-                    prompt,
-                    OpenAiChatOptions.builder()
-                            .model("gpt-4o")
-                            .temperature(0.3)
-                            .build()
-            )).getResult().getOutput().getText();
-
+            return aiService.createAnswer(prompt);
 
         }catch (Exception e){
-            return chatModel.call("Explica de manera amigable que hubo un problema al crear el restaurante, sin dar detalles técnicos del error." + e.getMessage());
+            String prompt = "Explica de manera amigable que hubo un problema al crear el restaurante, sin dar detalles técnicos del error." + e.getMessage();
+            return aiService.createAnswer(prompt);
         }
 
     }
