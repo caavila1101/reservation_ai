@@ -1,6 +1,7 @@
 package com.reservationai.reservation.domain.ports;
 
 import com.reservationai.reservation.domain.Restaurant;
+import com.reservationai.reservation.domain.RestaurantCategory;
 import com.reservationai.reservation.domain.RestaurantDetail;
 
 import java.util.List;
@@ -13,4 +14,5 @@ public interface RetrieveRestaurantDomain {
     List<Restaurant> createRestaurant(Restaurant restaurant);
     List<RestaurantDetail> createDetailRestaurant(RestaurantDetail restaurantDetail);
     Boolean findRestaurantByNameAndCity(String name, String city);
+    List<RestaurantCategory> getAllCategories();
 }

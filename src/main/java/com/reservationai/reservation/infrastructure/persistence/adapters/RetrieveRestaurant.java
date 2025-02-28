@@ -1,10 +1,13 @@
 package com.reservationai.reservation.infrastructure.persistence.adapters;
 
 import com.reservationai.reservation.domain.Restaurant;
+import com.reservationai.reservation.domain.RestaurantCategory;
 import com.reservationai.reservation.domain.RestaurantDetail;
 import com.reservationai.reservation.domain.ports.RetrieveRestaurantDomain;
 import com.reservationai.reservation.infrastructure.persistence.entities.RestaurantDetailEntity;
 import com.reservationai.reservation.infrastructure.persistence.entities.RestaurantEntity;
+import com.reservationai.reservation.infrastructure.persistence.entities.RestaurantsCategoriesEntity;
+import com.reservationai.reservation.infrastructure.persistence.repository.RestaurantCategoriesRepository;
 import com.reservationai.reservation.infrastructure.persistence.repository.RestaurantDetailRepository;
 import com.reservationai.reservation.infrastructure.persistence.repository.RestaurantRepository;
 import org.springframework.stereotype.Component;
@@ -17,10 +20,12 @@ public class RetrieveRestaurant implements RetrieveRestaurantDomain {
 
     private final RestaurantRepository restaurantRepository;
     private final RestaurantDetailRepository restaurantDetailRepository;
+    private final RestaurantCategoriesRepository restaurantCategoriesRepository;
 
-    public RetrieveRestaurant(RestaurantRepository restaurantRepository, RestaurantDetailRepository restaurantDetailRepository) {
+    public RetrieveRestaurant(RestaurantRepository restaurantRepository, RestaurantDetailRepository restaurantDetailRepository, RestaurantCategoriesRepository restaurantCategoriesRepository) {
         this.restaurantRepository = restaurantRepository;
         this.restaurantDetailRepository = restaurantDetailRepository;
+        this.restaurantCategoriesRepository = restaurantCategoriesRepository;
     }
 
     @Override
@@ -58,6 +63,15 @@ public class RetrieveRestaurant implements RetrieveRestaurantDomain {
     @Override
     public Boolean findRestaurantByNameAndCity(String name, String city) {
         return restaurantRepository.existsByNameAndCity(name, city);
+    }
+
+    @Override
+    public List<RestaurantCategory> getAllCategories() {
+        return restaurantCategoriesRepository
+                .findAll()
+                .stream()
+                .map(RestaurantsCategoriesEntity::toDomain)
+                .toList();
     }
 
     @Override

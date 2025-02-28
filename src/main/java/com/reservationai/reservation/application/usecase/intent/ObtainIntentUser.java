@@ -33,9 +33,11 @@ public class ObtainIntentUser {
         String promptTemplate = "Determina la intención del usuario y responde en este formato:\n" +
                 "- Para buscar restaurantes por categoría y ciudad: search_by_category|categoria, ciudad\n" +
                 "- Para detalles de un restaurante: search_by_name|nombreRestaurante\n" +
-                "- Para crear un restaurante, si no se proporciona la URL, usa un valor vacío (\"\"). Si no se detectan usuario y contraseña, usa valores vacíos (\"\") y (NO modifiques ni corrijas estos datos, mantenlos exactamente como fueron ingresados por el usuario): \n" +
+                "- Para crear un restaurante, si no se proporciona la URL, usa un valor vacío (\"\"). Si no se detectan usuario y contraseña, usa valores vacíos (\"\") y (NO modifiques, corrijas, ni reformatees estos datos de ninguna forma. \\n\" +\n" +
+                "  Mantenlos exactamente como fueron ingresados por el usuario, sin cambiar mayúsculas, acentos, espacios o cualquier otro carácter) \n" +
                 "  create_restaurant|nombre-categoria-ciudad-direccion-descripcion-url-usuario-contraseña\n" +
-                "- Para crear un usuario (NO modifiques ni corrijas estos datos, mantenlos exactamente como fueron ingresados por el usuario): \n" +
+                "- Para crear un usuario (NO modifiques, corrijas, ni reformatees estos datos de ninguna forma. \n" +
+                "  Mantenlos exactamente como fueron ingresados por el usuario, sin cambiar mayúsculas, acentos, espacios o cualquier otro carácter) \n" +
                 "  create_own_restaurant|usuario, email, contraseña\n" +
                 "Corrige errores, responde en minúsculas sin tildes y ajusta términos poco claros según el contexto.\n" +
                 "Las ciudades ingresadas son de Colombia, por lo que puedes corregir errores de escritura para mejorar coincidencias.\n" +

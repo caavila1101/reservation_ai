@@ -1,21 +1,20 @@
 package com.reservationai.reservation.application.usecase;
 
-import com.reservationai.reservation.domain.OwnRestaurant;
 import com.reservationai.reservation.domain.Restaurant;
+import com.reservationai.reservation.domain.RestaurantCategory;
 import com.reservationai.reservation.domain.RestaurantDetail;
 import com.reservationai.reservation.domain.ports.AIService;
 import com.reservationai.reservation.domain.ports.RetrieveOwnerRestaurantDomain;
 import com.reservationai.reservation.domain.ports.RetrieveRestaurantDomain;
 import com.reservationai.reservation.infrastructure.api.dto.RestaurantDTO;
 import jakarta.transaction.Transactional;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Service;
 import org.apache.commons.codec.digest.DigestUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class CreateResturant {
@@ -33,51 +32,83 @@ public class CreateResturant {
     @Transactional
     public String execute(RestaurantDTO restaurantDTO) {
         try {
-
             if(!restaurantDTO.getUser().isEmpty() && !restaurantDTO.getPassword().isEmpty()){
 
                 Boolean existUser = getOwnerByUserAndPassword(restaurantDTO.getUser(), DigestUtils.sha256Hex(restaurantDTO.getPassword()));
 
                 if(existUser){
-                    UUID uuid = UUID.randomUUID();
-                    String uuidRestaurant = uuid.toString();
 
-                    Restaurant restaurant = Restaurant.builder()
-                            .id(uuidRestaurant)
-                            .name(restaurantDTO.getName())
-                            .category(restaurantDTO.getCategory())
-                            .city(restaurantDTO.getCity())
-                            .userOwner(restaurantDTO.getUser())
-                            .build();
+                    List<String> allCategories = createDetailRestaurant();
 
-                    RestaurantDetail restaurantDetail = RestaurantDetail.builder()
-                            .id(uuidRestaurant)
-                            .name(restaurantDTO.getName())
-                            .address(restaurantDTO.getAddress())
-                            .description(restaurantDTO.getDescription())
-                            .url(restaurantDTO.getUrl())
-                            .city(restaurantDTO.getCity())
-                            .userOwner(restaurantDTO.getUser())
-                            .build();
+                    if(!allCategories.isEmpty()){
 
-                    Boolean restaurantExistsList =  getCategoriesByName(restaurant.getName(), restaurantDetail.getCity());
+                        String categoryPrompt = "Verifica si la categoría '" + restaurantDTO.getCategory() + "' tiene alguna coincidencia razonable con las categorías disponibles en la siguiente lista: " +
+                                String.join(", ", allCategories) + ".\n" +
+                                "Devuelve únicamente el nombre de la categoría más similar si existe una coincidencia razonable, o una cadena vacía ('') si no hay coincidencia.\n" +
+                                "⚠️ **Importante**: No debes corregir ni modificar la categoría ingresada. Compara de manera flexible, permitiendo algunas variaciones menores (como errores tipográficos o variaciones de nombre pequeñas), pero asegúrate de que la coincidencia sea razonable y no haga match con categorías completamente diferentes (por ejemplo, 'boyacenses' no debe coincidir con 'española'). Solo responde con la categoría más similar o una cadena vacía, sin punto final.";
+                        String extractCategory = aiService.createAnswer(categoryPrompt);
 
-                    if(!restaurantExistsList){
-                        List<Restaurant> restaurantList = createRestaurant(restaurant);
-                        List<RestaurantDetail> restaurantDetailList = createDetailRestaurant(restaurantDetail);
+                        boolean existsCategory = allCategories
+                                .parallelStream()
+                                .anyMatch(category -> category.toLowerCase()
+                                        .contains(extractCategory)
+                                );
 
-                        if (!restaurantList.isEmpty() && !restaurantDetailList.isEmpty()) {
-                            String responsePrompt = "Confirma de manera amigable que el restaurante " + restaurantList.get(0).getName() + " fue creado exitosamente, utiliza emojis. " +
-                                    "Dandole bienvenida calurosa a la aplicacion llamada GastroGo";
+                        if(!extractCategory.isEmpty() && existsCategory){
+                            UUID uuid = UUID.randomUUID();
+                            String uuidRestaurant = uuid.toString();
+
+                            Restaurant restaurant = Restaurant.builder()
+                                    .id(uuidRestaurant)
+                                    .name(restaurantDTO.getName())
+                                    .category(extractCategory)
+                                    .city(restaurantDTO.getCity())
+                                    .userOwner(restaurantDTO.getUser())
+                                    .build();
+
+                            RestaurantDetail restaurantDetail = RestaurantDetail.builder()
+                                    .id(uuidRestaurant)
+                                    .name(restaurantDTO.getName())
+                                    .address(restaurantDTO.getAddress())
+                                    .description(restaurantDTO.getDescription())
+                                    .url(restaurantDTO.getUrl())
+                                    .city(restaurantDTO.getCity())
+                                    .userOwner(restaurantDTO.getUser())
+                                    .build();
+
+                            Boolean restaurantExistsList =  getCategoriesByName(restaurant.getName(), restaurantDetail.getCity());
+
+                            if(!restaurantExistsList){
+                                List<Restaurant> restaurantList = createRestaurant(restaurant);
+                                List<RestaurantDetail> restaurantDetailList = createDetailRestaurant(restaurantDetail);
+
+                                if (!restaurantList.isEmpty() && !restaurantDetailList.isEmpty()) {
+                                    String responsePrompt = "Confirma de manera amigable que el restaurante " + restaurantList.get(0).getName() + " fue creado exitosamente, utiliza emojis. " +
+                                            "Dandole bienvenida calurosa a la aplicacion llamada GastroGo";
+                                    return aiService.createAnswer(responsePrompt);
+                                }
+                            }
+
+                            String responsePrompt  = "Aviso al usuario que el restaurante " + restaurant.getName() + " ubicado en " + restaurant.getCity() +
+                                    ", ya ha sido registrado previamente. Lamentablemente, no es posible crear un duplicado, utiliza emojis";
                             return aiService.createAnswer(responsePrompt);
                         }
+
+                        String responsePrompt =  "Dile la categoría ingresada por él: '" + restaurantDTO.getCategory() + "'.\n\n" +
+                                "e informa de manera amigable que no es válida.\n" +
+                                "🔹 Luego, muestra la lista completa de categorías disponibles con emojis.\n\n" +
+                                "Lista de categorías disponibles:\n" + String.join(", ", allCategories) + ".";
+                        return aiService.createAnswer(responsePrompt);
+
+
                     }
 
-                    String responsePrompt  = "Aviso al usuario que el restaurante " + restaurant.getName() + " ubicado en " + restaurant.getCity() +
-                            ", ya ha sido registrado previamente. Lamentablemente, no es posible crear un duplicado, utiliza emojis";
+                    String responsePrompt = "Informa al usuario de manera amigable que ocurrió un error inesperado y que intente nuevamente más tarde. " +
+                            "Usa un tono cordial y emojis para que el mensaje sea más amigable.";
                     return aiService.createAnswer(responsePrompt);
                 }
 
+                ///ARREGLAR ESTE PROMPT, ME DEVULVE MUCHA INFORMACION INNECESARIA
                 String prompt = "Antes de crear un restaurante, verifica primero si las credenciales ingresadas son correctas. 🔍\n\n" +
                         "Si las credenciales no coinciden con un usuario registrado, por favor revisa tus datos e inténtalo nuevamente. 🚫🔄\n\n" +
                         "Si aún no tienes un usuario, debes registrarte proporcionando los siguientes datos obligatorios:\n" +
@@ -117,6 +148,14 @@ public class CreateResturant {
 
     private List<RestaurantDetail> createDetailRestaurant(RestaurantDetail restaurantDetail){
         return retrieveRestaurantDomain.createDetailRestaurant(restaurantDetail);
+    }
+
+    private List<String> createDetailRestaurant(){
+        return retrieveRestaurantDomain
+                .getAllCategories()
+                .stream()
+                .map(RestaurantCategory::getName)
+                .collect(Collectors.toList());
     }
 
 }
