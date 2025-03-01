@@ -1,11 +1,9 @@
 package com.reservationai.reservation.application.usecase.intent;
 
-import com.reservationai.reservation.application.usecase.redirect.CreateOwnRestaurantRouter;
-import com.reservationai.reservation.application.usecase.redirect.CreateRestaurantRouter;
-import com.reservationai.reservation.application.usecase.redirect.RestaurantByCategoryRouter;
-import com.reservationai.reservation.application.usecase.redirect.RestaurantByNameRouter;
+import com.reservationai.reservation.application.usecase.redirect.*;
 import com.reservationai.reservation.domain.ports.AIService;
 import com.reservationai.reservation.infrastructure.api.dto.OwnRestaurantDTO;
+import com.reservationai.reservation.infrastructure.api.dto.RestaurantCommentsDTO;
 import com.reservationai.reservation.infrastructure.api.dto.RestaurantDTO;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -19,29 +17,33 @@ public class ObtainIntentUser {
     private final RestaurantByNameRouter restaurantByNameRouter;
     private final CreateRestaurantRouter createRestaurantRouter;
     private final CreateOwnRestaurantRouter createOwnRestaurantRouter;
+    private final CreateCommentRouter createCommentRouter;
     private final AIService aiService;
 
-    public ObtainIntentUser(RestaurantByCategoryRouter restaurantByCategoryRouter, RestaurantByNameRouter restaurantByNameRouter, CreateRestaurantRouter createRestaurantRouter, CreateOwnRestaurantRouter createOwnRestaurantRouter, AIService aiService) {
+    public ObtainIntentUser(RestaurantByCategoryRouter restaurantByCategoryRouter, RestaurantByNameRouter restaurantByNameRouter, CreateRestaurantRouter createRestaurantRouter, CreateOwnRestaurantRouter createOwnRestaurantRouter, CreateCommentRouter createCommentRouter, AIService aiService) {
         this.restaurantByCategoryRouter = restaurantByCategoryRouter;
         this.restaurantByNameRouter = restaurantByNameRouter;
         this.createRestaurantRouter = createRestaurantRouter;
         this.createOwnRestaurantRouter = createOwnRestaurantRouter;
+        this.createCommentRouter = createCommentRouter;
         this.aiService = aiService;
     }
 
     public String execute(String promptUser) {
         String promptTemplate = "Determina la intención del usuario y responde en este formato:\n" +
-                "- Para buscar restaurantes por categoría y ciudad: search_by_category|categoria, ciudad\n" +
-                "- Para detalles de un restaurante: search_by_name|nombreRestaurante\n" +
-                "- Para crear un restaurante, si no se proporciona la URL, usa un valor vacío (\"\"). Si no se detectan usuario y contraseña, usa valores vacíos (\"\") y (NO modifiques, corrijas, ni reformatees estos datos de ninguna forma. \\n\" +\n" +
+                "- Para buscar restaurantes por categoría y ciudad(Sí no encuentras el valor definciendo la categoria o la ciudad, usa un valor vacío en el espacio (\"\")): search_by_category|categoria, ciudad\n" +
+                "- Para detalles de un restaurante(Sí no encuentras el valor de alguno, usa un valor vacío en el espacio (\"\")): search_by_name|nombreRestaurante\n" +
+                "- Para crear un restaurante, (Sí no encuentras el valor de alguno, usa un valor vacío en el espacio (\"\")). Si no se detectan usuario y contraseña, usa valores vacíos (\"\") y (NO modifiques, corrijas, ni reformatees estos datos de ninguna forma. \\n\" +\n" +
                 "  Mantenlos exactamente como fueron ingresados por el usuario, sin cambiar mayúsculas, acentos, espacios o cualquier otro carácter) \n" +
                 "  create_restaurant|nombre-categoria-ciudad-direccion-descripcion-url-usuario-contraseña\n" +
                 "- Para crear un usuario (NO modifiques, corrijas, ni reformatees estos datos de ninguna forma. \n" +
-                "  Mantenlos exactamente como fueron ingresados por el usuario, sin cambiar mayúsculas, acentos, espacios o cualquier otro carácter) \n" +
+                "  Mantenlos exactamente como fueron ingresados por el usuario, sin cambiar mayúsculas, acentos, espacios o cualquier otro carácter)(Sí no encuentras el valor de alguno, usa un valor vacío en el espacio (\"\")) \n" +
                 "  create_own_restaurant|usuario, email, contraseña\n" +
+                "- Para crear un comentario sobre un resturante (Sí no encuentras el valor de alguno, usa un valor vacío en el espacio (\"\")): create_comment|nombreDelRestaurante-ciudadDelRestaurante-comentariosSobreElRestaurante-ratingDelRestaurante" +
                 "Corrige errores, responde en minúsculas sin tildes y ajusta términos poco claros según el contexto.\n" +
                 "Las ciudades ingresadas son de Colombia, por lo que puedes corregir errores de escritura para mejorar coincidencias.\n" +
                 "Si la entrada no corresponde a ninguno de los formatos indicados, responde con: 0\n\n" +
+                "Genera únicamente la respuesta en el formato exacto, sin agregar texto adicional, sin caracteres extras y sin modificar el nombre del restaurante.\n" +
                 promptUser;
         String extractedInfo = aiService.createAnswer(promptTemplate).trim();
 
@@ -56,6 +58,7 @@ public class ObtainIntentUser {
                 case "search_by_name" -> handleRestaurantDetails(data);
                 case "create_restaurant" -> handleCreateRestaurant(data);
                 case "create_own_restaurant" -> handleCreateOwnRestaurant(data);
+                case "create_comment" -> handleCreateComment(data);
                 default -> "";
             };
         }
@@ -70,9 +73,6 @@ public class ObtainIntentUser {
         String[] parts = data.split(",", 2);
         String category = parts[0].trim();
         String city = parts.length > 1 ? parts[1].trim() : "0";
-
-        if (category.equals("0")) return "Por favor, dime qué tipo de restaurante buscas.";
-        if (city.equals("0")) return "Por favor, dime en qué ciudad quieres buscar.";
 
         return restaurantByCategoryRouter.searchRestaurantsByCity(category, city);
     }
@@ -120,5 +120,22 @@ public class ObtainIntentUser {
                 .build();
 
         return createOwnRestaurantRouter.createOwnRestaurant(ownRestaurantDTO);
+    }
+
+    private String handleCreateComment(String data) {
+        String[] parts = data.split("-", 4);
+        String nameRestaurant = parts[0].trim();
+        String city = parts[1].trim();
+        String comment = parts[2].trim();
+        String rating = parts[3].trim();
+
+        RestaurantCommentsDTO restaurantCommentsDTO = RestaurantCommentsDTO.builder()
+                .cityRestaurant(city)
+                .nameRestaurant(nameRestaurant)
+                .comments(comment)
+                .rating(rating)
+                .build();
+
+        return createCommentRouter.createCommentsRestaurant(restaurantCommentsDTO);
     }
 }

@@ -1,5 +1,6 @@
 package com.reservationai.reservation.infrastructure.persistence.entities;
 
+import com.reservationai.reservation.domain.RestaurantComments;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -25,8 +26,17 @@ public class RestaurantReviewsEntity {
     @Column(name = "restaurant_city")
     private String restaurantCity;
     private String comment;
-    private Integer rating;
+    private String rating;
     @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    public RestaurantComments toDomain(){
+        return RestaurantComments.builder()
+                .nameRestaurant(nameRestaurant)
+                .cityRestaurant(restaurantCity)
+                .comments(comment)
+                .rating(rating)
+                .build();
+    }
 
 }

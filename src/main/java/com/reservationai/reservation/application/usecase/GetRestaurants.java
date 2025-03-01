@@ -25,6 +25,16 @@ public class GetRestaurants {
 
     public String execute(String categoryRestaurant, String cityRestaurant) {
 
+        if(categoryRestaurant.isEmpty()){
+            String prompt = "Informa al usuario que la categoria del restaurante es obligatorio para continuar, usa emojis, no le digas nada mas";
+            return aiService.createAnswer(prompt);
+        }
+
+        if(cityRestaurant.isEmpty()){
+            String prompt = "Informa al usuario que la ciudad del restaurante es obligatoria para continuar, usa emojis, no le digas nada mas.";
+            return aiService.createAnswer(prompt);
+        }
+
         List<String> allCategories = createDetailRestaurant();
 
         if(!allCategories.isEmpty()){
