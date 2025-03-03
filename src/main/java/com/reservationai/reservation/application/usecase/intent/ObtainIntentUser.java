@@ -31,11 +31,17 @@ public class ObtainIntentUser {
 
     public String execute(String promptUser) {
         String promptTemplate = "Determina la intención del usuario y responde en este formato:\n" +
-                "- Para buscar restaurantes por categoría y ciudad(Sí no encuentras el valor definciendo la categoria o la ciudad, usa un valor vacío en el espacio (\"\")): search_by_category|categoria, ciudad\n" +
-                "- Para detalles de un restaurante(Sí no encuentras el valor de alguno, usa un valor vacío en el espacio (\"\")): search_by_name|nombreRestaurante\n" +
-                "- Para crear un restaurante, (Sí no encuentras el valor de alguno, usa un valor vacío en el espacio (\"\")). Si no se detectan usuario y contraseña, usa valores vacíos (\"\") y (NO modifiques, corrijas, ni reformatees estos datos de ninguna forma. \\n\" +\n" +
-                "  Mantenlos exactamente como fueron ingresados por el usuario, sin cambiar mayúsculas, acentos, espacios o cualquier otro carácter) \n" +
-                "  create_restaurant|nombre-categoria-ciudad-direccion-descripcion-url-usuario-contraseña\n" +
+                "- Para buscar restaurantes por categoría y ciudad(Sí no encuentras el valor definiendo la categoria o la ciudad, usa un valor vacío en el espacio (\"\")): search_by_category|categoria, ciudad\n" +
+                "- Para detalles de un restaurante(Sí no encuentras el valor definiendo el nombre del resturante, usa un valor vacío en el espacio (\"\")): search_by_name|nombreRestaurante\n" +
+                "- Para crear un restaurante: Extrae los datos del usuario y organízalos en el siguiente formato sin modificar, corregir ni reformatear los valores ingresados.  \n" +
+                "Reglas estrictas:  \n" +
+                "1. Si el usuario NO proporciona explícitamente un valor para cualquier campo, usa \"\" (vacío).  \n" +
+                "2. NO asumas, inventes ni infieras valores en ningún caso.  \n" +
+                "3. Usa ÚNICAMENTE lo que el usuario ha dicho de manera clara.  \n" +
+                "4. Si el usuario menciona frases genéricas como \"Quiero crear un restaurante\" o \"El restaurante es\", NO tomes esa información como el nombre. Si no hay un nombre explícito, usa \"\"." +
+                "5. 5. Si algún campo no es mencionado, deja el espacio vacío con \"\". " +
+                "  create_restaurant|nombreDelRestaurante-categoriaDelRestaurante-ciudadDelRestaurante-direccionDelRestaurante-descripcionDelRestaurante-urlDelRestaurante-usuario-contraseña  \n" +
+                "Si un valor no está presente, reemplázalo con un valor vacío (\"\"). \n" +
                 "- Para crear un usuario (NO modifiques, corrijas, ni reformatees estos datos de ninguna forma. \n" +
                 "  Mantenlos exactamente como fueron ingresados por el usuario, sin cambiar mayúsculas, acentos, espacios o cualquier otro carácter)(Sí no encuentras el valor de alguno, usa un valor vacío en el espacio (\"\")) \n" +
                 "  create_own_restaurant|usuario, email, contraseña\n" +
@@ -65,7 +71,7 @@ public class ObtainIntentUser {
 
         String prompt = "Dile que estas para ayudarlo a encontrar nuevos restaurantes para probar y brindarte información " +
                 "sobre restaurantes específicos. Solo di esto de forma amigable, ya que es la primera vez que usan " +
-                "la aplicación o quieren recordar en qué puedes ayudarles. Y que tu no puedes hacer nada externo al negocio, no saludes";
+                "la aplicación o quieren recordar en qué puedes ayudarles. Y que tu no puedes hacer nada externo al negocio, no saludes y usa emojis";
         return aiService.createAnswer(prompt);
     }
 
